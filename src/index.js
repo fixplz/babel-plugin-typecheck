@@ -66,6 +66,12 @@ export default function build (babel: Object): Object {
           genericTypes: genericTypes
         });
       }
+      else {
+        this.traverse(visitors, {
+          constants: scope.getAllBindingsOfKind("const"),
+          subject: node,
+        });
+      }
     }
   });
 
@@ -629,7 +635,7 @@ export default function build (babel: Object): Object {
    */
   function exitNode (node: Object, parent: Object, scope: Object, state: Object) {
     if (node.type === 'ReturnStatement') {
-      if (state.returnTypes != null && state.returnTypes.length === 0) {
+      if (state.returnTypes == null || state.returnTypes.length === 0) {
         // we only care about typed return statements.
         return;
       }
@@ -695,8 +701,12 @@ export default function build (babel: Object): Object {
       }
     }
     else if (node.type === 'VariableDeclaration') {
+      let variableGuards: Array = createVariableGuards(node, state.genericTypes)
+      if(variableGuards.length === 0) {
+        return;
+      }
       if (parent.type === 'BlockStatement' || parent.type == 'Program') {
-        this.insertAfter(createVariableGuards(node, state.genericTypes));
+        this.insertAfter(variableGuards);
       }
       else if (
         parent.type === 'ForStatement' ||
