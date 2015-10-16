@@ -30,20 +30,10 @@ export default function build (babel: Object): Object {
 
   return new Transformer("typecheck", {
     Program (node: Object, parent: Object, scope: Object) {
-      try {
-        this.traverse(visitors, {
-          constants: scope.getAllBindingsOfKind("const"),
-          subject: node,
-        });
-      }
-      catch (e) {
-        if (e instanceof SyntaxError) {
-          throw this.errorWithNode(e.message);
-        }
-        else {
-          throw e;
-        }
-      }
+      this.traverse(visitors, {
+        constants: scope.getAllBindingsOfKind("const"),
+        subject: node,
+      });
     },
     Function (node: Object, parent: Object, scope: Object) {
       const genericTypes = [];
